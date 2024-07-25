@@ -51,8 +51,10 @@ log() {
 
 # Function to clean up temporary files
 cleanup() {
-    rm -f "$temp_file"
-    log "Cleaned up temporary files"
+    if [ -n "$temp_file" ] && [ -f "$temp_file" ]; then
+        rm -f "$temp_file"
+        log "Cleaned up temporary files"
+    fi
 }
 
 # Trap signals for cleanup
