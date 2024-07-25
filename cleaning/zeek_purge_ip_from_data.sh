@@ -8,7 +8,7 @@ usage() {
 
 # Function to check if a command exists
 command_exists() {
-    command -v "$1" >/dev/null 2>&1
+    command -v "$1" >/dev/null 2>&1 || { echo "Error: $1 is not installed."; exit 1; }
 }
 
 # Function to validate IP address format
@@ -92,10 +92,7 @@ validate_ip "$IP_TO_REMOVE"
 
 # Check required commands
 for cmd in find zcat grep gzip mktemp mv cp; do
-    if ! command_exists "$cmd"; then
-        echo "Command not found: $cmd"
-        exit 1
-    fi
+    command_exists "$cmd"
 done
 
 # Check write permissions
