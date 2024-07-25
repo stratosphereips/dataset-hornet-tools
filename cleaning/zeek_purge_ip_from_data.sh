@@ -141,8 +141,8 @@ find "$PATH_TO_LOGS" -type f -name '*.gz' | while read -r file; do
 done
 
 # Cleanup: Optionally remove backup files after successful processing
-read -p "Do you want to remove the backup files? (y/n): " cleanup
-if [[ "$cleanup" == "y" || "$cleanup" == "Y" ]]; then
+read -p "Do you want to remove the backup files? (y/n): " remove_backup_files
+if [[ "$remove_backup_files" == "y" || "$remove_backup_files" == "Y" ]]; then
     find "$PATH_TO_LOGS" -type f -name '*.gz.bak' -exec rm -f {} \;
     log "Backup files removed"
 fi
