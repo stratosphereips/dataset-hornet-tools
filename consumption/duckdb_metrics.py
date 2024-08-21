@@ -29,6 +29,8 @@ def check_db_info(con):
         for col in columns_info:
             print(f"   - {col[1]} ({col[2]})")
 
+    print()
+
 
 # Feature Extraction
 def total_bytes(con):
@@ -38,8 +40,12 @@ def total_bytes(con):
         - Use BIGINT for variable
     """
 
-    result = con.execute("SELECT SUM(CAST(orig_bytes AS BIGINT) + CAST(resp_bytes AS BIGINT)) FROM logs;").fetchone()[0]
+    result = con.execute(
+        "SELECT SUM(CAST(orig_bytes AS BIGINT) + CAST(resp_bytes AS BIGINT)) FROM logs;"
+    ).fetchone()[0]
+
     print(f"Total bytes: {result}")
+    print()
 
 
 def total_packets(con):
@@ -49,8 +55,12 @@ def total_packets(con):
         - Use BIGINT for variable
     """
 
-    result = con.execute("SELECT SUM(CAST(orig_pkts AS BIGINT) + CAST(resp_pkts AS BIGINT)) FROM logs;").fetchone()[0]
+    result = con.execute(
+        "SELECT SUM(CAST(orig_pkts AS BIGINT) + CAST(resp_pkts AS BIGINT)) FROM logs;"
+    ).fetchone()[0]
+
     print(f"Total packets: {result}")
+    print()
 
 
 def total_flows(con):
@@ -59,62 +69,89 @@ def total_flows(con):
         - Dataset is the table 'logs'
         - Flows will be one per row
     """
-    result = con.execute("SELECT COUNT(*) FROM logs;").fetchone()[0]
+
+    result = con.execute(
+        "SELECT COUNT(*) FROM logs;"
+    ).fetchone()[0]
 
     print(f"Total flows: {result}")
+    print()
 
 
 def flows_by_protocol_and_source(con):
-    """Calculate and print the total number of flows by protocol and honeypot source."""
+    """
+    Calculate the total number of flows by protocol and honeypot source.
+    """
+
     result = con.execute(
         "SELECT proto, source, COUNT(*) as flow_count FROM logs GROUP BY proto, source;"
     ).fetchall()
-    
+
     print("Total number of flows by protocol and honeypot source:")
+
     for row in result:
         print(f"Protocol: {row[0]}, Source: {row[1]}, Flow Count: {row[2]}")
 
+    print()
 
 def packets_per_honeypot_source(con):
-    """Calculate and print the amount of packets per honeypot location source."""
+    """
+    Calculate the amount of packets per honeypot location source.
+    """
+
     result = con.execute(
         "SELECT source, SUM(orig_pkts + resp_pkts) as packet_count FROM logs GROUP BY source;"
     ).fetchall()
-    
+
     print("Amount of packets per honeypot location source:")
+
     for row in result:
         print(f"Source: {row[0]}, Packet Count: {row[1]}")
 
+    print()
 
 def bytes_per_honeypot_source(con):
-    """Calculate and print the amount of bytes per honeypot location source."""
+    """
+    Calculate the amount of bytes per honeypot location source.
+    """
+
     result = con.execute(
         "SELECT source, SUM(CAST(orig_bytes AS BIGINT) + CAST(resp_bytes AS BIGINT)) as byte_count FROM logs GROUP BY source;"
     ).fetchall()
-    
+
     print("Amount of bytes per honeypot location source:")
     for row in result:
         print(f"Source: {row[0]}, Byte Count: {row[1]}")
 
+    print()
 
 def flows_per_honeypot_source(con):
-    """Calculate and print the amount of flows per honeypot location source."""
+    """
+    Calculate the amount of flows per honeypot location source.
+    """
+
     result = con.execute(
         "SELECT source, COUNT(*) as flow_count FROM logs GROUP BY source;"
     ).fetchall()
-    
+
     print("Amount of flows per honeypot location source:")
     for row in result:
         print(f"Source: {row[0]}, Flow Count: {row[1]}")
 
+    print()
 
 def unique_source_ips(con):
-    """Calculate and print the total unique source IP addresses."""
+    """
+    Calculate the total unique source IP addresses.
+    """
+
     result = con.execute(
         "SELECT COUNT(DISTINCT id_orig_h) as unique_ips FROM logs;"
     ).fetchone()[0]
-    
+
     print(f"Total unique source IP addresses: {result}")
+    print()
+
 
 def unique_source_ips_per_honeypot(con):
     """
