@@ -223,6 +223,10 @@ def main():
     parser.add_argument('--unique_source_ips',
                         action='store_true',
                         help='Calculate the total unique source IP addresses')
+    parser.add_argument('--unique_source_ips_per_honeypot',
+                        action='store_true',
+                        help='Calculate the total unique source IPs per honeypot source')
+
 
     args = parser.parse_args()
 
@@ -259,6 +263,9 @@ def main():
 
     if args.metrics or args.unique_source_ips:
         unique_source_ips(con)
+
+    if args.metrics or args.unique_source_ips_per_honeypot:
+        unique_source_ips_per_honeypot(con)
 
     logging.info('Feature extraction complete.')
 
