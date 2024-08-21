@@ -118,24 +118,57 @@ def unique_source_ips(con):
 
 
 def main():
-    """Main function to parse arguments and execute the selected actions."""
+    """
+    Main function to parse arguments and execute the selected actions.
+    """
     parser = argparse.ArgumentParser(description="Extract features and metrics from DuckDB.")
-    parser.add_argument('--db_name', required=True, help='Path to the DuckDB database file')
-    parser.add_argument('-L', '--log_file', default='feature_extraction.log', help='Log file name (default: feature_extraction.log)')
-    parser.add_argument('--log_level', default='INFO', help='Logging level (default: INFO)')
-    parser.add_argument('--info', action='store_true', help='Print general information about the database')
-    parser.add_argument('--metrics', action='store_true', help='Print all available metrics')
+    # Logging Options First
+    parser.add_argument('--log_level',
+                        default='INFO',
+                        help='Logging level (default: INFO)')
+    parser.add_argument('--log_file',
+                        default='feature_extraction.log',
+                        help='Log file name (default: feature_extraction.log)')
 
-    parser.add_argument('--total_flows', action='store_true', help='Calculate and print total flows')
-    parser.add_argument('--total_bytes', action='store_true', help='Calculate and print total bytes')
-    parser.add_argument('--total_packets', action='store_true', help='Calculate and print total packets')
+    # DB
+    parser.add_argument('--db_name',
+                        required=True,
+                        help='Path to the DuckDB database file')
+    # DB INFO
+    parser.add_argument('--info',
+                        action='store_true',
+                        help='Print general information about the database')
+    # OBTAIN ALL METRICS
+    parser.add_argument('--metrics',
+                        action='store_true',
+                        help='Calculate all available metrics')
 
-    parser.add_argument('--packets_per_honeypot_source', action='store_true', help='Calculate and print packets per honeypot source')
-    parser.add_argument('--bytes_per_honeypot_source', action='store_true', help='Calculate and print bytes per honeypot source')
-    parser.add_argument('--flows_per_honeypot_source', action='store_true', help='Calculate and print flows per honeypot source')
+    parser.add_argument('--total_flows',
+                        action='store_true',
+                        help='Calculate the total flows')
+    parser.add_argument('--total_bytes',
+                        action='store_true',
+                        help='Calculate the total bytes')
+    parser.add_argument('--total_packets',
+                        action='store_true',
+                        help='Calculate the total packets')
 
-    parser.add_argument('--flows_by_proto_source', action='store_true', help='Calculate and print flows by protocol and source')
-    parser.add_argument('--unique_source_ips', action='store_true', help='Calculate and print total unique source IP addresses')
+    parser.add_argument('--packets_per_honeypot_source',
+                        action='store_true',
+                        help='Calculate the packets per honeypot source')
+    parser.add_argument('--bytes_per_honeypot_source',
+                        action='store_true',
+                        help='Calculate the bytes per honeypot source')
+    parser.add_argument('--flows_per_honeypot_source',
+                        action='store_true',
+                        help='Calculate the flows per honeypot source')
+
+    parser.add_argument('--flows_by_proto_source',
+                        action='store_true',
+                        help='Calculate the flows by protocol and source')
+    parser.add_argument('--unique_source_ips',
+                        action='store_true',
+                        help='Calculate the total unique source IP addresses')
 
     args = parser.parse_args()
 
