@@ -116,6 +116,23 @@ def unique_source_ips(con):
     
     print(f"Total unique source IP addresses: {result}")
 
+def unique_source_ips_per_honeypot(con):
+    """
+    Calculate the total unique source IP addresses per honeypot
+    location source.
+    """
+
+    result = con.execute(
+        "SELECT source, COUNT(DISTINCT id_orig_h) as unique_ips FROM logs GROUP BY source;"
+    ).fetchall()
+
+    print("Total unique source IP addresses per honeypot location source:")
+
+    for row in result:
+        print(f"Source: {row[0]}, Unique IPs: {row[1]}")
+
+    print()
+
 
 def main():
     """
