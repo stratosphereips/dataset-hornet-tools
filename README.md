@@ -8,7 +8,7 @@ The repository contains scripts and tools to process the Hornet data. These are 
 
  - **Cleaning**: contains scripts used for data cleaning, such as removing of specific IPs, etc.
  - **Ingestion**: contains tools and scripts to ingest the data into a usable DB that can be used for further processing.
- - **Analysis**: contains tools and scripts to perform various data analysis tasks, gathering of statistics, etc.
+ - **Metrics**: contains tools and scripts to perform various data analysis tasks, gathering of statistics, etc.
 
 # About
 
