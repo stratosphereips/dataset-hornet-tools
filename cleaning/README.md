@@ -22,9 +22,14 @@ options:
 ```
 
 
-## zeek_purge_batch_uid_from_data.sh
+## zeek_purge_batch-uid_from_data.sh
 
-TODO: Add description and usage 
+Safely process Zeek logs to delete a specific UID from the logs, in batches.
+
+```bash
+$ bash zeek_purge_batch-uid_from_data.sh
+Usage: zeek_purge_batch-uid_from_data.sh -u UID_LIST_FILE -p PATH_TO_LOGS
+```
 
 ## zeek_purge_ip_from_data.sh
 
