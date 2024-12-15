@@ -248,6 +248,12 @@ def main():
     parser.add_argument('--total_flows',
                         action='store_true',
                         help='Calculate the total flows')
+    parser.add_argument('--total_flows_ipv4',
+                        action='store_true',
+                        help='Calculate the total IPv4 flows')
+    parser.add_argument('--total_flows_ipv6',
+                        action='store_true',
+                        help='Calculate the total IPv6 flows')
     parser.add_argument('--total_bytes',
                         action='store_true',
                         help='Calculate the total bytes')
@@ -290,6 +296,11 @@ def main():
 
     if args.metrics or args.total_flows:
         total_flows(con)
+    if args.metrics or args.total_flows_ipv4:
+        total_flows_ipv4(con)
+
+    if args.metrics or args.total_flows_ipv6:
+        total_flows_ipv6(con)
 
     if args.metrics or args.total_bytes:
         total_bytes(con)
