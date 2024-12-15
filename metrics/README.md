@@ -34,4 +34,35 @@ CSV with flows per honeypot per day saved to /tmp/output.csv
 
 ## duckdb_metrics.py
 
-TODO: add description and usage
+This tool allows to extract features and metrics from DuckDB. Each metric is usually a parameter that can be invoked manually.
+
+```bash
+:~$ python3 metrics/duckdb_metrics.py --help
+usage: duckdb_metrics.py [-h] [--log_level LOG_LEVEL] [--log_file LOG_FILE] --db_name DB_NAME [--info] [--metrics] [--total_flows] [--total_bytes] [--total_packets] [--packets_per_honeypot_source] [--bytes_per_honeypot_source] [--flows_per_honeypot_source]
+                         [--flows_by_proto_source] [--unique_source_ips] [--unique_source_ips_per_honeypot]
+
+Extract features and metrics from DuckDB.
+
+options:
+  -h, --help            show this help message and exit
+  --log_level LOG_LEVEL
+                        Logging level (default: INFO)
+  --log_file LOG_FILE   Log file name (default: feature_extraction.log)
+  --db_name DB_NAME     Path to the DuckDB database file
+  --info                Print general information about the database
+  --metrics             Calculate all available metrics
+  --total_flows         Calculate the total flows
+  --total_bytes         Calculate the total bytes
+  --total_packets       Calculate the total packets
+  --packets_per_honeypot_source
+                        Calculate the packets per honeypot source
+  --bytes_per_honeypot_source
+                        Calculate the bytes per honeypot source
+  --flows_per_honeypot_source
+                        Calculate the flows per honeypot source
+  --flows_by_proto_source
+                        Calculate the flows by protocol and source
+  --unique_source_ips   Calculate the total unique source IP addresses
+  --unique_source_ips_per_honeypot
+                        Calculate the total unique source IPs per honeypot source
+```
