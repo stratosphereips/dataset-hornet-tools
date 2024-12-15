@@ -66,3 +66,12 @@ options:
   --unique_source_ips_per_honeypot
                         Calculate the total unique source IPs per honeypot source
 ```
+
+Example of how to use:
+```bash
+:~$ python3 metrics/duckdb_metrics.py \
+    --db_name ../CTU-Hornet-65-Niner/duckdb/ctu-hornet-65-niner_v0.1.db \
+    --total_flows
+
+Total flows: 12477164
+```
