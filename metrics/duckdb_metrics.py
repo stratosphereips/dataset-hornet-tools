@@ -78,6 +78,30 @@ def total_flows(con):
     print()
 
 
+def total_flows_ipv4(con):
+    """
+    Calculate the total number of IPv4 flows in the DuckDB database.
+
+    IPv4 Flows: Rows where both id_orig_h and id_resp_h are valid IPv4 addresses.
+    """
+    try:
+        # SQL query to filter and count rows with valid IPv4 addresses using regex
+        result = con.execute('''
+            SELECT COUNT(*)
+            FROM logs
+            WHERE 
+                regexp_matches(id_orig_h, '^((\\d{1,3}.){3}\\d{1,3})$')
+            AND 
+                regexp_matches(id_resp_h, '^((\\d{1,3}.){3}\\d{1,3})$')
+        ''').fetchone()[0]
+
+        print(f'Total IPv4 flows calculated: {result}')
+        print()
+
+    except Exception as e:
+        print(f"Error calculating IPv4 flows: {e}")
+        return None
+
 def flows_by_protocol_and_source(con):
     """
     Calculate the total number of flows by protocol and honeypot source.
