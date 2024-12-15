@@ -53,4 +53,18 @@ Usage: zeek_purge_uid_from_data.sh -u UID_TO_REMOVE -p PATH_TO_LOGS
 
 ## zeek_purge_uid_from_db.py
 
-TODO: Add description and usage 
+Safely delete DuckDB entries matching a UID.
+
+```bash
+:~$ python3 zeek_purge_uid_from_db.py --help
+usage: zeek_purge_uid_from_db.py [-h] --db_name DB_NAME --uid_file UID_FILE [--log_file LOG_FILE] [--confirm]
+
+Delete Zeek log entries by UID from DuckDB.
+
+options:
+  -h, --help           show this help message and exit
+  --db_name DB_NAME    Path to the DuckDB database file
+  --uid_file UID_FILE  File containing UIDs to delete, one per line
+  --log_file LOG_FILE  Log file name (default: deletion.log)
+  --confirm            Ask for confirmation before deleting
+```
