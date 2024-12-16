@@ -126,6 +126,7 @@ def total_flows_ipv6(con):
         print(f"Error calculating IPv6 flows: {e}")
         return None
 
+
 def protocol_summary(con):
     """
     Outputs the number of flows in total, the number of flows using TCP, UDP, and ICMP,
@@ -159,6 +160,7 @@ def protocol_summary(con):
         print(f"Error generating protocol summary: {e}")
         return None
 
+def flows_by_protocol_and_source_old(con):
     """
     Calculate the total number of flows by protocol and honeypot source.
     """
@@ -173,6 +175,56 @@ def protocol_summary(con):
         print(f"Protocol: {row[0]}, Source: {row[1]}, Flow Count: {row[2]}")
 
     print()
+
+def flows_by_protocol_and_source(con):
+    """
+    Calculate the total number of flows by honeypot source, with a distinction between
+    IPv4 and IPv6 flows, and output in a CSV-friendly format.
+    """
+    try:
+        # Query to calculate the required data
+        query = '''
+            SELECT
+                source,
+                COUNT(*) AS total_flows,
+                SUM(CASE WHEN regexp_matches(id_orig_h, '^((\\d{1,3}\\.){3}\\d{1,3})$') AND
+                              regexp_matches(id_resp_h, '^((\\d{1,3}\\.){3}\\d{1,3})$') THEN 1 ELSE 0 END) AS ipv4_flows,
+                SUM(CASE WHEN NOT regexp_matches(id_orig_h, '^((\\d{1,3}\\.){3}\\d{1,3})$') AND
+                              NOT regexp_matches(id_resp_h, '^((\\d{1,3}\\.){3}\\d{1,3})$') THEN 1 ELSE 0 END) AS ipv6_flows,
+                SUM(CASE WHEN proto = 'tcp' THEN 1 ELSE 0 END) AS total_tcp_flows,
+                SUM(CASE WHEN proto = 'udp' THEN 1 ELSE 0 END) AS total_udp_flows,
+                SUM(CASE WHEN proto = 'icmp' THEN 1 ELSE 0 END) AS total_icmp_flows,
+                SUM(CASE WHEN proto = 'tcp' AND regexp_matches(id_orig_h, '^((\\d{1,3}\\.){3}\\d{1,3})$') AND
+                                         regexp_matches(id_resp_h, '^((\\d{1,3}\\.){3}\\d{1,3})$') THEN 1 ELSE 0 END) AS ipv4_tcp_flows,
+                SUM(CASE WHEN proto = 'udp' AND regexp_matches(id_orig_h, '^((\\d{1,3}\\.){3}\\d{1,3})$') AND
+                                         regexp_matches(id_resp_h, '^((\\d{1,3}\\.){3}\\d{1,3})$') THEN 1 ELSE 0 END) AS ipv4_udp_flows,
+                SUM(CASE WHEN proto = 'icmp' AND regexp_matches(id_orig_h, '^((\\d{1,3}\\.){3}\\d{1,3})$') AND
+                                          regexp_matches(id_resp_h, '^((\\d{1,3}\\.){3}\\d{1,3})$') THEN 1 ELSE 0 END) AS ipv4_icmp_flows,
+                SUM(CASE WHEN proto = 'tcp' AND NOT regexp_matches(id_orig_h, '^((\\d{1,3}\\.){3}\\d{1,3})$') AND
+                                         NOT regexp_matches(id_resp_h, '^((\\d{1,3}\\.){3}\\d{1,3})$') THEN 1 ELSE 0 END) AS ipv6_tcp_flows,
+                SUM(CASE WHEN proto = 'udp' AND NOT regexp_matches(id_orig_h, '^((\\d{1,3}\\.){3}\\d{1,3})$') AND
+                                         NOT regexp_matches(id_resp_h, '^((\\d{1,3}\\.){3}\\d{1,3})$') THEN 1 ELSE 0 END) AS ipv6_udp_flows,
+                SUM(CASE WHEN proto = 'icmp' AND NOT regexp_matches(id_orig_h, '^((\\d{1,3}\\.){3}\\d{1,3})$') AND
+                                          NOT regexp_matches(id_resp_h, '^((\\d{1,3}\\.){3}\\d{1,3})$') THEN 1 ELSE 0 END) AS ipv6_icmp_flows
+            FROM logs
+            GROUP BY source
+            ORDER BY source;
+        '''
+
+        # Execute the query
+        result = con.execute(query).fetchall()
+
+        # Print CSV-friendly output
+        header = "Honeypot Source, Total Flows, IPv4 Flows, IPv6 Flows, Total TCP Flows, Total UDP Flows, Total ICMP Flows, IPv4 TCP Flows, IPv4 UDP Flows, IPv4 ICMP Flows, IPv6 TCP Flows, IPv6 UDP Flows, IPv6 ICMP Flows"
+        print(header)
+
+        for row in result:
+            print(",".join(map(str, row)))
+
+        print()
+    except Exception as e:
+        print(f"Error calculating flows by protocol and source: {e}")
+
 
 def packets_per_honeypot_source(con):
     """
