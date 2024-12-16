@@ -92,3 +92,12 @@ To retrieve the number of flows per honeypot scenario for the protocol:
 * `KERBEROS`: `PROTO="kerberos"; for HONEY in zeek/*; do zcat $HONEY/*/${PROTO}.*.gz 2>/dev/null | wc -l; done`
 * `RADIUS`: `PROTO="radius"; for HONEY in zeek/*; do zcat $HONEY/*/${PROTO}.*.gz 2>/dev/null | wc -l; done`
 * `DHCP`: `PROTO="dhcp"; for HONEY in zeek/*; do zcat $HONEY/*/${PROTO}.*.gz 2>/dev/null | wc -l; done`
+
+## Small Multiples of Daily Honeypot Traffic
+
+To generate a visual chart of the daily honeypot traffic, we have created a tool called 'chart_stacked_flows_per_day.py':
+
+`python3 metrics/chart_stacked_flows_per_day.py --csv_file output.csv --chart_file ~/Downloads/flows_chart.png`
+
+An example output is shown below:
+![flows_chart](https://github.com/user-attachments/assets/b55750f0-f5f7-41c1-881f-f3766e83528e)
