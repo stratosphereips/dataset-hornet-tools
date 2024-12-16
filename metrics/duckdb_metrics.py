@@ -380,6 +380,8 @@ def main():
 
     if args.metrics or args.total_flows:
         total_flows(con)
+        protocol_summary(con)
+
     if args.metrics or args.total_flows_ipv4:
         total_flows_ipv4(con)
 
