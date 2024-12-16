@@ -34,7 +34,7 @@ def create_small_multiples_from_wide_csv(csv_file, chart_file):
             ax = axes[idx]
             df[column].plot(kind='area', stacked=False, alpha=0.7, ax=ax, color='tab:blue')
             ax.set_title(column, fontsize=10)
-            ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))  # Format x-axis
+            #ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))  # Format x-axis
             ax.xaxis.set_major_locator(mdates.AutoDateLocator())
             ax.tick_params(axis='x', rotation=45)
 
