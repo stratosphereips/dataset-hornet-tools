@@ -78,21 +78,131 @@ def total_flows(con):
     print()
 
 
+def total_flows_ipv4(con):
+    """
+    Calculate the total number of IPv4 flows in the DuckDB database.
+
+    IPv4 Flows: Rows where both id_orig_h and id_resp_h are valid IPv4 addresses.
+    """
+    try:
+        # SQL query to filter and count rows with valid IPv4 addresses using regex
+        result = con.execute('''
+            SELECT COUNT(*)
+            FROM logs
+            WHERE 
+                regexp_matches(id_orig_h, '^((\\d{1,3}.){3}\\d{1,3})$')
+            AND 
+                regexp_matches(id_resp_h, '^((\\d{1,3}.){3}\\d{1,3})$')
+        ''').fetchone()[0]
+
+        print(f'Total IPv4 flows calculated: {result}')
+        print()
+
+    except Exception as e:
+        print(f"Error calculating IPv4 flows: {e}")
+        return None
+
+
+def total_flows_ipv6(con):
+    """
+    Calculate the total number of IPv6 flows in the DuckDB database.
+
+    IPv6 Flows: Rows where both id_orig_h and id_resp_h are valid IPv6 addresses.
+    """
+    try:
+        # SQL query to filter and count rows with valid IPv6 addresses using regex
+        result = con.execute('''
+            SELECT COUNT(*)
+            FROM logs
+            WHERE NOT 
+                regexp_matches(id_orig_h, '^((\\d{1,3}.){3}\\d{1,3})$')
+            AND NOT
+                regexp_matches(id_resp_h, '^((\\d{1,3}.){3}\\d{1,3})$')
+        ''').fetchone()[0]
+
+        print(f'Total IPv6 flows calculated: {result}')
+
+    except Exception as e:
+        print(f"Error calculating IPv6 flows: {e}")
+        return None
+
+
+def protocol_summary(con):
+    """
+    Outputs the number of flows in total, the number of flows using TCP, UDP, and ICMP,
+    grouped by IPv4 and IPv6.
+    """
+    try:
+        # Query to calculate flows grouped by IP type (IPv4/IPv6) and protocol
+        query = '''
+            SELECT
+                CASE
+                    WHEN regexp_matches(id_orig_h, '^((\\d{1,3}\\.){3}\\d{1,3})$')
+                         AND regexp_matches(id_resp_h, '^((\\d{1,3}\\.){3}\\d{1,3})$')
+                    THEN 'IPv4'
+                    ELSE 'IPv6'
+                END AS "IP Proto",
+                COUNT(*) AS "Total Flows",
+                SUM(CASE WHEN proto = 'tcp' THEN 1 ELSE 0 END) AS "TCP Flows",
+                SUM(CASE WHEN proto = 'udp' THEN 1 ELSE 0 END) AS "UDP Flows",
+                SUM(CASE WHEN proto = 'icmp' THEN 1 ELSE 0 END) AS "ICMP Flows"
+            FROM logs
+            GROUP BY "IP Proto";
+        '''
+
+        # Execute the query and fetch the result as a Pandas DataFrame
+        result_df = con.execute(query).fetchdf()
+
+        print("Total flows grouped by IPv4/IPv6 and protocol):")
+        print(result_df)
+
+    except Exception as e:
+        print(f"Error generating protocol summary: {e}")
+        return None
+
+
 def flows_by_protocol_and_source(con):
     """
-    Calculate the total number of flows by protocol and honeypot source.
+    Calculate the total number of flows by honeypot source, with a distinction between
+    IPv4 and IPv6 flows, and output in a CSV-friendly format.
     """
+    try:
+        # Query to calculate the required data
+        query = '''
+            SELECT
+                source as "Honeypot Name (Source)",
+                COUNT(*) AS total_flows,
+                SUM(CASE WHEN regexp_matches(id_orig_h, '^((\\d{1,3}\\.){3}\\d{1,3})$') AND
+                              regexp_matches(id_resp_h, '^((\\d{1,3}\\.){3}\\d{1,3})$') THEN 1 ELSE 0 END) AS ipv4_flows,
+                SUM(CASE WHEN NOT regexp_matches(id_orig_h, '^((\\d{1,3}\\.){3}\\d{1,3})$') AND
+                              NOT regexp_matches(id_resp_h, '^((\\d{1,3}\\.){3}\\d{1,3})$') THEN 1 ELSE 0 END) AS ipv6_flows,
+                SUM(CASE WHEN proto = 'tcp' THEN 1 ELSE 0 END) AS total_tcp_flows,
+                SUM(CASE WHEN proto = 'udp' THEN 1 ELSE 0 END) AS total_udp_flows,
+                SUM(CASE WHEN proto = 'icmp' THEN 1 ELSE 0 END) AS total_icmp_flows,
+                SUM(CASE WHEN proto = 'tcp' AND regexp_matches(id_orig_h, '^((\\d{1,3}\\.){3}\\d{1,3})$') AND
+                                         regexp_matches(id_resp_h, '^((\\d{1,3}\\.){3}\\d{1,3})$') THEN 1 ELSE 0 END) AS ipv4_tcp_flows,
+                SUM(CASE WHEN proto = 'udp' AND regexp_matches(id_orig_h, '^((\\d{1,3}\\.){3}\\d{1,3})$') AND
+                                         regexp_matches(id_resp_h, '^((\\d{1,3}\\.){3}\\d{1,3})$') THEN 1 ELSE 0 END) AS ipv4_udp_flows,
+                SUM(CASE WHEN proto = 'icmp' AND regexp_matches(id_orig_h, '^((\\d{1,3}\\.){3}\\d{1,3})$') AND
+                                          regexp_matches(id_resp_h, '^((\\d{1,3}\\.){3}\\d{1,3})$') THEN 1 ELSE 0 END) AS ipv4_icmp_flows,
+                SUM(CASE WHEN proto = 'tcp' AND NOT regexp_matches(id_orig_h, '^((\\d{1,3}\\.){3}\\d{1,3})$') AND
+                                         NOT regexp_matches(id_resp_h, '^((\\d{1,3}\\.){3}\\d{1,3})$') THEN 1 ELSE 0 END) AS ipv6_tcp_flows,
+                SUM(CASE WHEN proto = 'udp' AND NOT regexp_matches(id_orig_h, '^((\\d{1,3}\\.){3}\\d{1,3})$') AND
+                                         NOT regexp_matches(id_resp_h, '^((\\d{1,3}\\.){3}\\d{1,3})$') THEN 1 ELSE 0 END) AS ipv6_udp_flows,
+                SUM(CASE WHEN proto = 'icmp' AND NOT regexp_matches(id_orig_h, '^((\\d{1,3}\\.){3}\\d{1,3})$') AND
+                                          NOT regexp_matches(id_resp_h, '^((\\d{1,3}\\.){3}\\d{1,3})$') THEN 1 ELSE 0 END) AS ipv6_icmp_flows
+            FROM logs
+            GROUP BY "Honeypot Name (Source)"
+            ORDER BY "Honeypot Name (Source)";
+        '''
 
-    result = con.execute(
-        "SELECT proto, source, COUNT(*) as flow_count FROM logs GROUP BY proto, source;"
-    ).fetchall()
+        # Execute the query
+        result_df = con.execute(query).fetchdf()
 
-    print("Total number of flows by protocol and honeypot source:")
+        print(result_df)
+    except Exception as e:
+        print(f"Error calculating flows by protocol and source: {e}")
 
-    for row in result:
-        print(f"Protocol: {row[0]}, Source: {row[1]}, Flow Count: {row[2]}")
-
-    print()
 
 def packets_per_honeypot_source(con):
     """
@@ -171,6 +281,90 @@ def unique_source_ips_per_honeypot(con):
     print()
 
 
+def generate_honeypot_summary_csv(con):
+    """
+    Generate a CSV summarizing honeypot data with the following columns:
+    - Honeypot Name (Source)
+    - Total Number of Network Flows
+    - Total Number of Unique Src IPs
+    - Total Number of Bytes
+    - Total Number of Packets
+    """
+    try:
+        # SQL query to calculate the required metrics
+        query = """
+        SELECT 
+            source AS "Honeypot Name (Source)",
+            COUNT(*) AS "Total Number of Network Flows",
+            COUNT(DISTINCT id_orig_h) AS "Total Number of Unique Src IPs",
+            SUM(orig_bytes + resp_bytes) AS "Total Number of Bytes",
+            SUM(orig_pkts + resp_pkts) AS "Total Number of Packets"
+        FROM logs
+        GROUP BY source
+        ORDER BY source;
+        """
+
+        # Execute query and fetch results
+        result_df = con.execute(query).fetchdf()
+
+        print(result_df)
+
+    except Exception as e:
+        print(f"Error generating honeypot summary: {e}")
+
+def total_flows_per_destination_port_udp(con, top_n=10):
+    """
+    Get the total flows per destination port (id_resp_p) and return the top N ports.
+    """
+    try:
+        # SQL query to calculate flows per destination port
+        query = f"""
+        SELECT 
+            id_resp_p AS "UDP Port",
+            COUNT(*) AS "Total Network Flows"
+        FROM logs
+        WHERE proto = 'udp'
+        GROUP BY id_resp_p
+        ORDER BY "Total Network Flows" DESC
+        LIMIT {top_n};
+        """
+
+        # Execute query and fetch the result
+        result_df = con.execute(query).fetchdf()
+
+        # Print results
+        print(result_df)
+    except Exception as e:
+        print(f"Error calculating flows per destination port: {e}")
+        return None
+
+def total_flows_per_destination_port_tcp(con, top_n=10):
+    """
+    Get the total flows per destination port (id_resp_p) and return the top N ports.
+    """
+    try:
+        # SQL query to calculate flows per destination port
+        query = f"""
+        SELECT 
+            id_resp_p AS "TCP Port",
+            COUNT(*) AS "Total Network Flows"
+        FROM logs
+        WHERE proto = 'tcp'
+        GROUP BY id_resp_p
+        ORDER BY "Total Network Flows" DESC
+        LIMIT {top_n};
+        """
+
+        # Execute query and fetch the result
+        result_df = con.execute(query).fetchdf()
+
+        # Print results
+        print(result_df)
+    except Exception as e:
+        print(f"Error calculating flows per destination port: {e}")
+        return None
+
+
 def main():
     """
     Main function to parse arguments and execute the selected actions.
@@ -200,6 +394,12 @@ def main():
     parser.add_argument('--total_flows',
                         action='store_true',
                         help='Calculate the total flows')
+    parser.add_argument('--total_flows_ipv4',
+                        action='store_true',
+                        help='Calculate the total IPv4 flows')
+    parser.add_argument('--total_flows_ipv6',
+                        action='store_true',
+                        help='Calculate the total IPv6 flows')
     parser.add_argument('--total_bytes',
                         action='store_true',
                         help='Calculate the total bytes')
@@ -227,6 +427,10 @@ def main():
                         action='store_true',
                         help='Calculate the total unique source IPs per honeypot source')
 
+    parser.add_argument('--flows_by_top_dst_ports',
+                        action='store_true',
+                        help='Calculate the total flows by top destination ports')
+
 
     args = parser.parse_args()
 
@@ -240,32 +444,67 @@ def main():
     if args.info:
         check_db_info(con)
 
-    if args.metrics or args.total_flows:
+    if args.metrics:
+        print("-------------------------------------------------------------------------------------")
+        print("Table 1: CTU Hornet 65 Niner dataset metrics overview per honeypot during the 65 days")
+        print("-------------------------------------------------------------------------------------")
+        generate_honeypot_summary_csv(con)
+        print("-------------------------------------------------------------------------------------")
+        print()
+        print("-------------------------------------------------------------------------------------")
+        print("Table 2 and 3: CTU Hornet 65 Niner dataset total network flows by L3 and L4")
+        print("-------------------------------------------------------------------------------------")
+        flows_by_protocol_and_source(con)
+        print("-------------------------------------------------------------------------------------")
+        print()
+        print("-------------------------------------------------------------------------------------")
+        print("Table 4: Top 10 TCP destination ports by total number of network flows")
+        print("-------------------------------------------------------------------------------------")
+        total_flows_per_destination_port_tcp(con)
+        print("-------------------------------------------------------------------------------------")
+        print()
+        print("-------------------------------------------------------------------------------------")
+        print("Table 5: Top 10 UDP destination ports by total number of network flows")
+        print("-------------------------------------------------------------------------------------")
+        total_flows_per_destination_port_udp(con)
+        print("-------------------------------------------------------------------------------------")
+        print()
+
+    if args.total_flows:
         total_flows(con)
 
-    if args.metrics or args.total_bytes:
+    if args.total_flows_ipv4:
+        total_flows_ipv4(con)
+
+    if args.total_flows_ipv6:
+        total_flows_ipv6(con)
+
+    if args.total_bytes:
         total_bytes(con)
 
-    if args.metrics or args.total_packets:
+    if args.total_packets:
         total_packets(con)
 
-    if args.metrics or args.flows_by_proto_source:
+    if args.flows_by_proto_source:
         flows_by_protocol_and_source(con)
 
-    if args.metrics or args.packets_per_honeypot_source:
+    if args.packets_per_honeypot_source:
         packets_per_honeypot_source(con)
 
-    if args.metrics or args.bytes_per_honeypot_source:
+    if args.bytes_per_honeypot_source:
         bytes_per_honeypot_source(con)
 
-    if args.metrics or args.flows_per_honeypot_source:
+    if args.flows_per_honeypot_source:
         flows_per_honeypot_source(con)
 
-    if args.metrics or args.unique_source_ips:
+    if args.unique_source_ips:
         unique_source_ips(con)
 
-    if args.metrics or args.unique_source_ips_per_honeypot:
+    if args.unique_source_ips_per_honeypot:
         unique_source_ips_per_honeypot(con)
+    
+    if args.flows_by_top_dst_ports:
+        total_flows_per_destination_port(con)
 
     logging.info('Feature extraction complete.')
 

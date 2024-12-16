@@ -1,2 +1,4 @@
 duckdb
 ijson
+pandas
+matplotlib
