@@ -126,7 +126,39 @@ def total_flows_ipv6(con):
         print(f"Error calculating IPv6 flows: {e}")
         return None
 
-def flows_by_protocol_and_source(con):
+def protocol_summary(con):
+    """
+    Outputs the number of flows in total, the number of flows using TCP, UDP, and ICMP,
+    grouped by IPv4 and IPv6.
+    """
+    try:
+        # Query to calculate flows grouped by IP type (IPv4/IPv6) and protocol
+        query = '''
+            SELECT
+                CASE
+                    WHEN regexp_matches(id_orig_h, '^((\\d{1,3}\\.){3}\\d{1,3})$')
+                         AND regexp_matches(id_resp_h, '^((\\d{1,3}\\.){3}\\d{1,3})$')
+                    THEN 'IPv4'
+                    ELSE 'IPv6'
+                END AS "IP Proto",
+                COUNT(*) AS "Total Flows",
+                SUM(CASE WHEN proto = 'tcp' THEN 1 ELSE 0 END) AS "TCP Flows",
+                SUM(CASE WHEN proto = 'udp' THEN 1 ELSE 0 END) AS "UDP Flows",
+                SUM(CASE WHEN proto = 'icmp' THEN 1 ELSE 0 END) AS "ICMP Flows"
+            FROM logs
+            GROUP BY "IP Proto";
+        '''
+
+        # Execute the query and fetch the result as a Pandas DataFrame
+        result_df = con.execute(query).fetchdf()
+
+        print("Total flows grouped by IPv4/IPv6 and protocol):")
+        print(result_df)
+
+    except Exception as e:
+        print(f"Error generating protocol summary: {e}")
+        return None
+
     """
     Calculate the total number of flows by protocol and honeypot source.
     """
